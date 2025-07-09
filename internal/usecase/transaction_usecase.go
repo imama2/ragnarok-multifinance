@@ -63,7 +63,20 @@ func (u *TransactionUsecase) Create(ctx context.Context, req request.Transaction
 	if err := u.transactionRepo.Create(ctx, tx); err != nil {
 		return nil, err
 	}
-	// TODO: Generate payment schedule and save payments
+	// Generate payment schedule and save payments
+	baseDate := time.Now().AddDate(0, 1, 0) // First payment in 1 month
+	for i := 0; i < product.Tenure; i++ {
+		payment := &database.Payment{
+			TransactionID: tx.ID,
+			DueDate:       baseDate.AddDate(0, i, 0),
+			Amount:        installment,
+			Status:        "UNPAID",
+		}
+		err := u.paymentRepo.Create(ctx, payment)
+		if err != nil {
+			return nil, errors.New("failed to create payment schedule")
+		}
+	}
 	return tx, nil
 }
 

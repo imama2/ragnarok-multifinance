@@ -1,0 +1,16 @@
+{
+  "MySQL": {
+    "DSN": "user:password@tcp(localhost:3306)/ragnarok?parseTime=true"
+  },
+  "Redis": {
+    "Addr": "localhost:6379",
+    "Password": "",
+    "DB": 0
+  },
+  "JWT": {
+    "Secret": "supersecretkey"
+  },
+  "Server": {
+    "Port": ":8080"
+  }
+} 

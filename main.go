@@ -63,6 +63,18 @@ func main() {
 	productUC := usecase.NewProductUsecase(productRepo)
 	productHandler := http.NewProductHandler(productUC)
 
+	// Setup repositories for transaction and payment
+	transactionRepo := repository.NewTransactionMySQL(db)
+	paymentRepo := repository.NewPaymentMySQL(db)
+
+	// Setup usecases
+	transactionUC := usecase.NewTransactionUsecase(transactionRepo, productRepo, paymentRepo)
+	paymentUC := usecase.NewPaymentUsecase(paymentRepo, transactionRepo)
+
+	// Setup handlers
+	transactionHandler := http.NewTransactionHandler(transactionUC, redisClient)
+	paymentHandler := http.NewPaymentHandler(paymentUC, redisClient)
+
 	// Setup Gin
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.New()
@@ -94,10 +106,12 @@ func main() {
 		c.JSON(200, gin.H{"status": "ready"})
 	})
 
-	// Register product routes with JWT middleware
+	// Register product, transaction, and payment routes with JWT middleware
 	api := r.Group("/api")
 	api.Use(pkg.JWTMiddleware(viper.GetString("JWT.Secret")))
 	productHandler.Register(api)
+	transactionHandler.Register(api)
+	paymentHandler.Register(api)
 
 	srv := &httpServer{engine: r}
 
